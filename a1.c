@@ -2,6 +2,7 @@
 
 #include <string.h> // for testing generate_splits()
 
+// QUESTION 1: DONE BY SHAURY PATEL(22110241),MUKUL MEENA(22110159)
 /*
  * Generate k-selections of a[0..n-1] in lexicographic order and call process_selection to process them.
  *
@@ -10,22 +11,61 @@
  * Selections should be generated in lexicographic order.
  * a[0..k-1] is the smallest selection and a[n-k..n-1] is the largest.
  */
-void generate_selections(int a[], int n, int k, int b[], void *data, void (*process_selection)(int *b, int k, void *data))
+
+// void generate_selections(int a[], int n, int k, int b[], void *data, void (*process_selection)(int *b, int k, void *data))
+// {
+//     b[0] = 2; b[1] = 1;
+//     process_selection(b, 2, data);
+//     b[0] = 2; b[1] = 6;
+//     process_selection(b, 2, data);
+//     b[0] = 2; b[1] = 5;
+//     process_selection(b, 2, data);
+//     b[0] = 1; b[1] = 6;
+//     process_selection(b, 2, data);
+//     b[0] = 1; b[1] = 5;
+//     process_selection(b, 2, data);
+//     b[0] = 6; b[1] = 5;
+//     process_selection(b, 2, data);
+// }
+
+void selections(int a[], int b[], int start, int end, int index, int k, void *data, void (*process_selection)(int *b, int k, void *data))
 {
-    b[0] = 2; b[1] = 1;
-    process_selection(b, 2, data);
-    b[0] = 2; b[1] = 6;
-    process_selection(b, 2, data);
-    b[0] = 2; b[1] = 5;
-    process_selection(b, 2, data);
-    b[0] = 1; b[1] = 6;
-    process_selection(b, 2, data);
-    b[0] = 1; b[1] = 5;
-    process_selection(b, 2, data);
-    b[0] = 6; b[1] = 5;
-    process_selection(b, 2, data);
+    if (index==k)
+    {
+        process_selection(b,k,data);
+        return;
+    }
+    for (int i=start; i<end && end - i + 1 >= k - index; ++i)
+    {
+        b[index] = a[i];
+        selections(a,b,i + 1,end,index+1,k,data,process_selection);
+    }
 }
 
+void generate_selections(int a[], int n, int k, int b[], void *data, void (*process_selection)(int *b, int k, void *data))
+{
+    selections(a, b, 0, n, 0, k, data, process_selection);
+}
+
+// void process_selection(int *b, int k, void *data)    //for printing (example usage)
+// {
+//     for (int i = 0; i < k; i++)
+//     {
+//         printf("%d ", b[i]);
+//     }
+//     printf("\n");
+// }
+// int main()
+// {
+//     int a[] = {1, 2, 3, 4};
+//     int n = sizeof(a) / sizeof(a[0]);
+//     int k = 3;
+//     int b[k];
+//     generate_selections(a, n, k, b, NULL, process_selection);
+//     return 0;
+// }
+
+// QUESTION 2: DONE BY SHAURY PATEL(22110241),MUKUL MEENA(22110159),KAILA UDAY(22110111)
 /*
  * See Exercise 2 (a), page 94 in Jeff Erickson's textbook.
  * The exercise only asks you to count the possible splits.
@@ -34,27 +74,130 @@ void generate_selections(int a[], int n, int k, int b[], void *data, void (*proc
  * The dictionary parameter is an array of words, sorted in dictionary order.
  * nwords is the number of words in this dictionary.
  */
-void generate_splits(const char *source, const char *dictionary[], int nwords, char buf[], void *data, void (*process_split)(char buf[], void *data))
+// void generate_splits(const char *source, const char *dictionary[], int nwords, char buf[], void *data, void (*process_split)(char buf[], void *data))
+// {
+//     strcpy(buf, "art is toil");
+//     process_split(buf, data);
+//     strcpy(buf, "artist oil");
+//     process_split(buf, data);
+// }
+
+void generate_splits_helper(const char *source, const char *dictionary[], int nwords, char buf[], int sourceIndex, int bufIndex, void *data, void (*process_split)(char buf[], void *data))
 {
-    strcpy(buf, "art is toil");
-    process_split(buf, data);
-    strcpy(buf, "artist oil");
-    process_split(buf, data);
+    if (sourceIndex == strlen(source)) {
+        buf[bufIndex] = '\0';
+        process_split(buf, data);
+        return;
+    }
+
+    char word[100]; 
+    int wordIndex = 0; 
+    while (sourceIndex < strlen(source)) {
+        word[wordIndex] = source[sourceIndex];
+        wordIndex++;
+        sourceIndex++;
+        word[wordIndex] = '\0';
+        for (int i = 0; i < nwords; i++) {
+            if (strcmp(word,dictionary[i]) == 0) {
+                strcpy(buf + bufIndex, word);
+                bufIndex += strlen(word);
+                if (sourceIndex< strlen(source)) {
+                    buf[bufIndex] = ' ';
+                    bufIndex++;
+                }
+                generate_splits_helper(source, dictionary, nwords, buf, sourceIndex, bufIndex, data, process_split);
+                bufIndex -= strlen(word);
+                if (sourceIndex < strlen(source)) {
+                    bufIndex--;
+                }
+            }
+        }
+    }
 }
 
+void generate_splits(const char *source, const char *dictionary[], int nwords, char buf[], void *data, void (*process_split)(char buf[], void *data))
+{
+    int sourceIndex = 0;
+    int bufIndex = 0;
+    generate_splits_helper(source, dictionary, nwords, buf, sourceIndex, bufIndex, data, process_split);
+}
+
+void process_split(char buf[], void *data) {    //for printing
+    printf("%s\n", buf);
+}
+
+// int main() {        
+//     const char *dictionary[] = { "ART", "IS", "TOIL", "OIL", "ARTIST" ,"AR","TIST"};
+//     // const char *dictionary[]={"ARTISTOIL"};
+//     int nwords = sizeof(dictionary) / sizeof(dictionary[0]);
+//     const char *source = "ARTISTOIL";
+//     void *data = NULL;
+//     char buf[100];
+//     generate_splits(source, dictionary, nwords, buf, data, process_split);
+//     return 0;
+// }
+
+//QUESTION 3: DONE BY KAILA UDAY(22110111)
 /*
  * Transform a[] so that it becomes the previous permutation of the elements in it.
  * If a[] is the first permutation, leave it unchanged.
  */
-void previous_permutation(int a[], int n)
-{
-    a[0] = 1;
-    a[1] = 5;
-    a[2] = 4;
-    a[3] = 6;
-    a[4] = 3;
-    a[5] = 2;
+// void previous_permutation(int a[], int n)
+// {
+//     a[0] = 1;
+//     a[1] = 5;
+//     a[2] = 4;
+//     a[3] = 6;
+//     a[4] = 3;
+//     a[5] = 2;
+// }
+
+void swap(int *a, int *b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
 }
+
+void reverse(int a[], int start, int end) {
+    while (start < end) {
+        swap(&a[start], &a[end]);
+        start++;
+        end--;
+    }
+}
+
+void previous_permutation(int a[], int n) {
+    int i=n-2;
+    while (i >= 0 && a[i] <= a[i + 1]) {
+        i--;
+    }
+    if (i < 0) {
+        return;
+    }
+    int j=n - 1;
+    while (a[j]>=a[i]) {
+        j--;
+    }
+    swap(&a[i],&a[j]);
+    reverse(a,i+1,n-1);
+}
+
+// int main() {                            //FOR PRINTING PREVIOUS PERMUTATION
+//     int arr[] = {2,3,5,4,6};
+//     int n = sizeof(arr) / sizeof(arr[0]);
+//     printf("Original array: ");
+//     for (int i = 0; i < n; i++) {
+//         printf("%d ", arr[i]);
+//     }
+//     printf("\n");
+//     previous_permutation(arr, n);
+//     printf("Previous permutation: ");
+//     for (int i = 0; i < n; i++) {
+//         printf("%d ", arr[i]);
+//     }
+//     printf("\n");
+//     return 0;
+// }
 
 /* Write your tests here. Use the previous assignment for reference. */
 
